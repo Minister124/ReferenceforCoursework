@@ -1,0 +1,95 @@
+﻿<!-- Razor page for creating a form with multiple hobbies -->
+@page "/form"
+
+<!-- Inject the NavigationManager Services for page navigation -->
+@inject NavigationManager NavigationManager
+
+<!-- EditForm component of Blazor for handling form submission and validation -->
+<EditForm Model="@form" OnValidSubmit="@HandleSubmit">
+    <DataAnnotationsValidator/>
+    <ValidationSummary/>
+    <div class="form-group">
+        <label for="FirstName">FirstName:</label>
+        <!-- InputText component with two-way data binding to the FirstName property -->
+        <InputText id="FirstName" class="form-control" @bind-Value="form.FirstName"/>
+    </div>
+    <div class="form-group">
+        <label for="LastName">LastName:</label>
+        <!-- InputText component with two-way data binding to the LastName property -->
+        <InputText id="LastName" class="form-control" @bind-Value="form.LastName" />
+    </div>
+    <div class="form-group">
+        <label for="Email">Email:</label>
+        <!-- InputText component with two-way data binding to the Email property -->
+        <InputText id="Email" class="form-control" @bind-Value="form.Email" />
+    </div>
+    <div class="form-group">
+        <label for="PhoneNumber">Phone:</label>
+        <!-- InputText component with two-way data binding to the PhoneNumber property -->
+        <InputText id="Phone" class="form-control" @bind-Value="form.PhoneNumber" />
+    </div>
+    <div class="form-group">
+        <label for="Address">Address:</label>
+        <!-- InputText component with two-way data binding to the Address property -->
+        <InputText id="Address" class="form-control" @bind-Value="form.Address" />
+    </div>
+    <div class="form-group">
+        <label for="Hobbies">Hobbies:</label>
+        <!-- Select component for displaying and selecting multiple hobbies -->
+        <select id="Hobbies" class="form-control" multiple>
+            <!-- Iterate through the list of hobbies and create an option for each -->
+            @foreach (var hobby in hobbies)
+            {
+                <option value="@hobby.Id">@hobby.Name</option>
+            }
+        </select>
+    </div>
+    <br />
+    <!-- Submit button for form submission -->
+    <button type="submit" class="btn btn-primary">Submit</button>
+</EditForm>
+
+@code {
+    // List to store available hobbies
+    public List<Hobby> hobbies = new List<Hobby>();
+
+    // Form object to store form data
+    AddForm form = new AddForm();
+
+    // List to store selected hobby Ids
+    private List<Guid> selectedHobbies = new List<Guid>();
+
+    // Initialization method runs when the component i.e. Form.razor is initialized
+    protected override void OnInitialized()
+    {
+        // Retrieve the list of available hobbies
+        hobbies = HobbyServices.RetrieveHobbiesData();
+        base.OnInitialized();
+    }
+
+    // HandleSubmit method is called on form submission
+    public async void HandleSubmit()
+    {
+        // Use JavaScript interop to get the selected hobby Ids from the multiselect JavaScript function
+        var selectedHobbies =  await JSRuntime.InvokeAsync<List<string>>("multiselect.getSelectedValues", "Hobbies");
+
+        // Map selected hobby Ids to Hobby objects and assign them to the form's Hobbies property
+        form.Hobbies = selectedHobbies.Select(id =>
+        new Hobby
+            {
+                Id = Guid.Parse(id),
+                Name = hobbies.FirstOrDefault(h => h.Id == Guid.Parse(id))?.Name
+            }).ToList();
+
+        // Save form data to JSON file
+        FormServices.SaveFormDataInJson(form);
+        // Reset the form object
+        form = new AddForm();
+
+        // Navigate to the FormData page
+        NavigationManager.NavigateTo("/formData");
+
+        // Display a success alert
+        await App.Current.MainPage.DisplayAlert("Form Added", "Form Added To Json", "OK");
+    }
+}

@@ -1,0 +1,52 @@
+﻿<!-- Razor page for editing a hobby with a specified Id -->
+@page "/EditHobby/{Id:guid}"
+<!-- Inject the NavigationManager Service for page navigation -->
+@inject NavigationManager NavManager
+
+<h3>EditHobby</h3>
+
+<!-- EditForm component of blazor for handling form submission and validation -->
+<EditForm Model="@hobby" OnValidSubmit="@HandleSubmit">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+    <div class="form-group">
+        <label for="Name">Name:</label>
+        <!-- InputText component with two-way data binding to the hobby's Name property -->
+        <InputText id="Name" class="form-control" @bind-Value="hobby.Name" />
+    </div>
+    <!-- Submit button for saving changes -->
+    <button type="submit" class="btn btn-primary">Save</button>
+</EditForm>
+
+@code {
+    [Parameter] // Parameter to capture the hobby Id from the route above /EditHobby/{Id:guid}
+    public Guid Id {get; set;}
+
+    // Hobby object to store and edit hobby information
+    public Hobby hobby;
+
+    // Initialization method runs when the component i.e. EditHobby.razor is initialized
+    protected override void OnInitialized()
+    {
+        hobby = HobbyServices.GetHobbyById(Id); // Retrieve the hobby information based on the specified Id, Calling the Method from HobbyServices class in Services Folder
+        base.OnInitialized();
+    }
+
+    // HandleSubmit method is called on form submission
+    public void HandleSubmit()
+    {
+        try
+        {
+            // Call HobbyServices to edit the hobby with the specified Id and updated Name by calling method EditHobby from HobbyServices class in Services Folder
+            HobbyServices.EditHobby(Id, hobby.Name);
+
+            // Display a success alert and navigate back to the Hobbies page
+            App.Current.MainPage.DisplayAlert("Success", "Data SuccessFully Edited", "Ok");
+            NavManager.NavigateTo("/Hobbies");
+        }
+        catch(Exception ex){
+            // Display an error alert if an exception occurs during editing
+            App.Current.MainPage.DisplayAlert("Error", $"Error Editing Hobbies:{ex.Message}","Ok");
+        }
+    }
+}

@@ -1,0 +1,55 @@
+﻿@page "/Hobbies"
+
+<h3>View Hobbies</h3>
+<table class="table">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Action</th>
+        </tr>
+    </thead>
+    <tbody>
+        <!-- Loop through each hobby data -->
+        @foreach (var hobbiesData in HobbyServices.RetrieveHobbiesData())
+        {
+            <tr>
+                <!-- Display hobby ID and Name -->
+                <td>@hobbiesData.Id</td>
+                <td>@hobbiesData.Name</td>
+                <td>
+                    <!-- Button to navigate to the EditHobby page with the specific hobby ID -->
+                    <button type="submit" @onclick="@(()=>EditHobby(hobbiesData.Id))" class="btn btn-primary">Edit</button>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+@code {
+    // Inject NavigationManager for navigation purposes
+    [Inject]
+    private NavigationManager NManager { get; set; }
+
+    // Initialize the page on start
+    protected override void OnInitialized()
+    {
+        // Inject sample hobby data to ensure some data exists
+        HobbyServices.InjectSampleHobbiesData();
+        base.OnInitialized();
+    }
+
+    // Method to navigate to the EditHobby page with a specific hobby Id
+    public void EditHobby(Guid id)
+    {
+        try
+        {
+            // Navigate to the EditHobby page with the specific hobby ID
+            NManager.NavigateTo($"/EditHobby/{id}");
+        }
+        catch (Exception ex)
+        {
+            // Handle any navigation errors
+            Console.WriteLine($"Error Navigating:{ex.Message}");
+        }
+    }
+}
